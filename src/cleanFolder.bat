@@ -1,0 +1,2 @@
+del *.hlt
+del *.class

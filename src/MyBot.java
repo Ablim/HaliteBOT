@@ -44,7 +44,7 @@ public class MyBot {
 	            				moves.add(new Move(l, Direction.STILL));
 	            			}
 	            			else {
-	            				moves.add(new Move(l, l.getDirectionFrom(origin))); 
+	            				moves.add(new Move(l, Direction.randomDirection())); 
 	            			}
 	            		}
 	            	}

@@ -9,15 +9,7 @@ public class MyBot {
         final InitPackage iPackage = Networking.getInit();
         final int myID = iPackage.myID;
         final GameMap gameMap = iPackage.map;
-        int stepCounter = 1;
-        int nextStepCount = 1;
-        Direction currentDirection = Direction.NORTH;
-        
-        LinkedList<Direction> directionLoop = new LinkedList<Direction>();
-        directionLoop.add(Direction.EAST);
-        directionLoop.add(Direction.SOUTH);
-        directionLoop.add(Direction.WEST);
-        directionLoop.add(Direction.NORTH);
+        Location origin = null;
 
         Networking.sendInit("AblimBOT");
 
@@ -30,6 +22,10 @@ public class MyBot {
             		Location l = gameMap.getLocation(x, y);
             	
 	            	if (l.getSite().owner == myID) {
+	            		if (origin == null) {
+	            			origin = l;
+	            		}
+	            		
 	            		Location neighbor = getWeakestNeighbor(gameMap, l);
 	            		
 	            		if (neighbor != null) {
@@ -48,24 +44,13 @@ public class MyBot {
 	            				moves.add(new Move(l, Direction.STILL));
 	            			}
 	            			else {
-	            				moves.add(new Move(l, currentDirection)); 
+	            				moves.add(new Move(l, l.getDirectionFrom(origin))); 
 	            			}
 	            		}
 	            	}
             	}
             }
 
-            if (stepCounter > 0) {
-            	stepCounter--;
-            }
-            else {
-            	nextStepCount++;
-            	stepCounter = nextStepCount;
-            	currentDirection = directionLoop.getFirst();
-            	directionLoop.removeFirst();
-            	directionLoop.addLast(currentDirection);
-            }
-            
             Networking.sendFrame(moves);
         }
     }

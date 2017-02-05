@@ -25,9 +25,9 @@ public class MyBot {
         	Networking.updateFrame(gameMap);
             List<Move> moves = new ArrayList<Move>();
             
-            for (int row = 0; row < gameMap.height; row++) {
-            	for (int column = 0; column < gameMap.width; column++) {
-            		Location l = gameMap.getLocation(row, column);
+            for (int x = 0; x < gameMap.width; x++) {
+            	for (int y = 0; y < gameMap.height; y++) {
+            		Location l = gameMap.getLocation(x, y);
             	
 	            	if (l.getSite().owner == myID) {
 	            		Location neighbor = getWeakestNeighbor(gameMap, l);

@@ -96,6 +96,10 @@ public class MyBot {
 				if (target == null) {
 					target = l;
 				}
+				else if (l.getSite().owner != 0) {
+					target = l;
+					break;
+				}
 				else if (l.getSite().strength < target.getSite().strength) {
 					target = l;
 				}

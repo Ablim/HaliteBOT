@@ -39,16 +39,11 @@ public class MyBot {
 	            			//Move among friends
 	            			me.target = getTargetFromNeighbors(gameMap, me);
 	            			
-	            			if (me.getSite().strength == 0) {
+	            			if (me.getSite().strength < 50 || me.target == null) {
 	            				moves.add(new Move(me, Direction.STILL));
 	            			}
 	            			else {
-	            				if (me.target != null) {
-	            					moves.add(new Move(me, me.getDirectionTo(me.target))); 
-	            				}
-	            				else {
-	            					moves.add(new Move(me, Direction.STILL));
-	            				}
+	            				moves.add(new Move(me, me.getDirectionTo(me.target))); 
 	            			}
 	            		}
 	            	}

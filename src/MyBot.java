@@ -9,8 +9,7 @@ public class MyBot {
         final InitPackage iPackage = Networking.getInit();
         final int myID = iPackage.myID;
         final GameMap gameMap = iPackage.map;
-        Location origin = null;
-
+        
         Networking.sendInit("AblimBOT");
 
         while (true) {
@@ -19,42 +18,71 @@ public class MyBot {
             
             for (int x = 0; x < gameMap.width; x++) {
             	for (int y = 0; y < gameMap.height; y++) {
-            		Location l = gameMap.getLocation(x, y);
+            		Location me = gameMap.getLocation(x, y);
             	
-	            	if (l.getSite().owner == myID) {
-	            		if (origin == null) {
-	            			origin = l;
-	            		}
-	            		
-	            		Location neighbor = getWeakestNeighbor(gameMap, l);
+	            	if (me.getSite().owner == myID) {
+	            		Location neighbor = getWeakestNeighbor(gameMap, me);
 	            		
 	            		if (neighbor != null) {
-	            			if (neighbor.getSite().strength < l.getSite().strength) {
+	            			me.target = neighbor;
+	            			
+	            			if (neighbor.getSite().strength < me.getSite().strength) {
 	            				//KILL!
-	            				moves.add(new Move(l, l.getDirectionTo(neighbor)));
+	            				moves.add(new Move(me, me.getDirectionTo(neighbor)));
 	            			}
 	            			else {
 	            				//Wait
-	            				moves.add(new Move(l, Direction.STILL));
+	            				moves.add(new Move(me, Direction.STILL));
 	            			}
 	            		}
 	            		else {
 	            			//Move among friends
-	            			if (l.getSite().strength == 0) {
-	            				moves.add(new Move(l, Direction.STILL));
+	            			me.target = getTargetFromNeighbors(gameMap, me);
+	            			
+	            			if (me.getSite().strength == 0) {
+	            				moves.add(new Move(me, Direction.STILL));
 	            			}
 	            			else {
-	            				moves.add(new Move(l, Direction.randomDirection())); 
+	            				if (me.target != null) {
+	            					moves.add(new Move(me, me.getDirectionTo(me.target))); 
+	            				}
+	            				else {
+	            					moves.add(new Move(me, Direction.STILL));
+	            				}
 	            			}
 	            		}
 	            	}
             	}
             }
-
+            
             Networking.sendFrame(moves);
         }
     }
 	
+	private static Location getTargetFromNeighbors(GameMap gameMap, Location myLocation) {
+		Location target = null;
+		LinkedList<Location> neighbors = new LinkedList<Location>();
+		neighbors.add(gameMap.getLocation(myLocation, Direction.NORTH));
+		neighbors.add(gameMap.getLocation(myLocation, Direction.EAST));
+		neighbors.add(gameMap.getLocation(myLocation, Direction.SOUTH));
+		neighbors.add(gameMap.getLocation(myLocation, Direction.WEST));
+		
+		for (Location l : neighbors) {
+			if (l.target != null && l.target.getSite().owner != myLocation.getSite().owner) {
+				if (target == null) {
+					target = l.target;
+				}
+				else {
+					if (gameMap.getDistance(myLocation, l.target) < gameMap.getDistance(myLocation, target)) {
+						target = l.target;
+					}
+				}
+			}
+		}
+		
+		return target;
+	}
+
 	private static Location getWeakestNeighbor(GameMap map, Location myLocation) {
 		Location target = null;
 		LinkedList<Location> possibleTargets = new LinkedList<Location>();

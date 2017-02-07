@@ -19,11 +19,18 @@ public class RandomBot {
                 for (int x = 0; x < gameMap.width; x++) {
                     final Location location = gameMap.getLocation(x, y);
                     final Site site = location.getSite();
-                    if(site.owner == myID) {
-                        moves.add(new Move(location, Direction.randomDirection()));
+                    
+                    if (site.owner == myID) {
+                    	if (site.strength == 0) {
+                    		moves.add(new Move(location, Direction.STILL));
+                    	}
+                    	else {
+                    		moves.add(new Move(location, Direction.randomDirection()));
+                    	}
                     }
                 }
             }
+            
             Networking.sendFrame(moves);
         }
     }

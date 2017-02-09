@@ -4,11 +4,14 @@ import java.util.List;
 
 public class MyBot {
     
+	private static int myID = 0;
+	
 	public static void main(String[] args) throws java.io.IOException {
 
         final InitPackage iPackage = Networking.getInit();
-        final int myID = iPackage.myID;
+        myID = iPackage.myID;
         final GameMap gameMap = iPackage.map;
+        final int strengthLimit = 50;
         
         Networking.sendInit("AblimBOT");
 
@@ -20,33 +23,69 @@ public class MyBot {
             	for (int y = 0; y < gameMap.height; y++) {
             		Location me = gameMap.getLocation(x, y);
             	
-	            	if (me.getSite().owner == myID) {
-	            		Location neighbor = getWeakestNeighbor(gameMap, me);
-	            		
-	            		if (neighbor != null) {
-	            			me.target = neighbor;
-	            			
-	            			if (neighbor.getSite().strength < me.getSite().strength) {
-	            				//KILL!
-	            				moves.add(new Move(me, me.getDirectionTo(neighbor)));
-	            			}
-	            			else {
-	            				//Wait
-	            				moves.add(new Move(me, Direction.STILL));
-	            			}
-	            		}
-	            		else {
-	            			//Move among friends
-	            			me.target = getTargetFromNeighbors(gameMap, me);
-	            			
-	            			if (me.getSite().strength < 50 || me.target == null) {
-	            				moves.add(new Move(me, Direction.STILL));
-	            			}
-	            			else {
-	            				moves.add(new Move(me, me.getDirectionTo(me.target))); 
-	            			}
-	            		}
+	            	if (me.getSite().owner != myID) {
+	            		continue;
 	            	}
+	            	
+            		/*
+            		 * Look at neighbors
+            		 * 
+            		 * if enemy {
+            		 * 		my.strength > enemy.strength -> KILL
+            		 * 		my.strength <= enemy.strength -> STILL
+            		 * }
+            		 * else if any friend.target is enemy {
+            		 * 		my.strength >= 50 -> move to target
+            		 * 		my.strength < 50 -> STILL
+            		 * }
+            		 * else if terrain {
+            		 * 		my.strength > terrain.strength -> KILL
+            		 * 		my.strength <= terrain.strength -> STILL
+            		 * }
+            		 * else {
+            		 * 		my.strength >= 50 -> move to any friend.target
+            		 * 		my.strength < 50 -> STILL
+            		 * }
+            		 */
+	            	
+	            	LinkedList<Location> neighbors = new LinkedList<Location>();
+	            	neighbors.add(gameMap.getLocation(me, Direction.NORTH));
+	            	neighbors.add(gameMap.getLocation(me, Direction.EAST));
+	            	neighbors.add(gameMap.getLocation(me, Direction.SOUTH));
+	            	neighbors.add(gameMap.getLocation(me, Direction.WEST));
+	            	
+	            	Location enemy = null;
+	            	Location friendsEnemy = null;
+	            	Location terrain = null;
+	            	Location friendsTerrainTarget = null;
+	            	
+	            	for (Location l : neighbors) {
+	            		enemy = getWeakestEnemy(enemy, l);
+	            		friendsEnemy = getWeakestEnemyFromFriend(friendsEnemy, l);
+	            		terrain = getWeakestTerrain(terrain, l);
+	            		friendsTerrainTarget = getWeakestTerrainTargetFromFriend(friendsTerrainTarget, l);
+	            	}
+	            	
+	            	Direction step = Direction.STILL; 
+	            	
+	            	if (enemy != null) {
+	            		step = me.getSite().strength > enemy.getSite().strength ? me.getDirectionTo(enemy) : Direction.STILL;
+	            		me.target = enemy;
+	            	}
+	            	else if (friendsEnemy != null) {
+	            		step = me.getSite().strength > strengthLimit ? me.getDirectionTo(friendsEnemy) : Direction.STILL;
+	            		me.target = friendsEnemy;
+	            	}
+	            	else if (terrain != null) {
+	            		step = me.getSite().strength > terrain.getSite().strength ? me.getDirectionTo(terrain) : Direction.STILL;
+	            		me.target = terrain;
+	            	}
+	            	else if (friendsTerrainTarget != null) {
+	            		step = me.getSite().strength > strengthLimit ? me.getDirectionTo(friendsTerrainTarget) : Direction.STILL;
+	            		me.target = friendsTerrainTarget;
+	            	}
+	            	
+	            	moves.add(new Move(me, step));
             	}
             }
             
@@ -54,53 +93,55 @@ public class MyBot {
         }
     }
 	
-	private static Location getTargetFromNeighbors(GameMap gameMap, Location myLocation) {
-		Location target = null;
-		LinkedList<Location> neighbors = new LinkedList<Location>();
-		neighbors.add(gameMap.getLocation(myLocation, Direction.NORTH));
-		neighbors.add(gameMap.getLocation(myLocation, Direction.EAST));
-		neighbors.add(gameMap.getLocation(myLocation, Direction.SOUTH));
-		neighbors.add(gameMap.getLocation(myLocation, Direction.WEST));
-		
-		for (Location l : neighbors) {
-			if (l.target != null && l.target.getSite().owner != myLocation.getSite().owner) {
-				if (target == null) {
-					target = l.target;
-				}
-				else {
-					if (gameMap.getDistance(myLocation, l.target) < gameMap.getDistance(myLocation, target)) {
-						target = l.target;
-					}
-				}
-			}
+	private static Location getWeakestTerrainTargetFromFriend(Location currentTerrainTarget, Location friend) {
+		if (friend == null || friend.getSite().owner != myID || friend.target == null || friend.target.getSite().owner != 0) {
+			return null;
 		}
 		
-		return target;
+		if (currentTerrainTarget == null) {
+			return friend.target;
+		}
+		else {
+			return currentTerrainTarget.getSite().strength < friend.target.getSite().strength ? currentTerrainTarget : friend.target;
+		}
 	}
 
-	private static Location getWeakestNeighbor(GameMap map, Location myLocation) {
-		Location target = null;
-		LinkedList<Location> possibleTargets = new LinkedList<Location>();
-		possibleTargets.add(map.getLocation(myLocation, Direction.NORTH));
-		possibleTargets.add(map.getLocation(myLocation, Direction.EAST));
-		possibleTargets.add(map.getLocation(myLocation, Direction.SOUTH));
-		possibleTargets.add(map.getLocation(myLocation, Direction.WEST));
-		
-		for (Location l : possibleTargets) {
-			if (l.getSite().owner != myLocation.getSite().owner) {
-				if (target == null) {
-					target = l;
-				}
-				else if (l.getSite().owner != 0) {
-					target = l;
-					break;
-				}
-				else if (l.getSite().strength < target.getSite().strength) {
-					target = l;
-				}
-			}
+	private static Location getWeakestTerrain(Location currentTerrain, Location terrain) {
+		if (terrain == null || terrain.getSite().owner != 0) {
+			return null;
 		}
 		
-		return target;
+		if (currentTerrain == null) {
+			return terrain;
+		}
+		else {
+			return currentTerrain.getSite().strength < terrain.getSite().strength ? currentTerrain : terrain;
+		}
+	}
+
+	private static Location getWeakestEnemyFromFriend(Location currentEnemy, Location friend) {
+		if (friend == null || friend.getSite().owner != myID || friend.target == null || friend.target.getSite().owner == 0 || friend.target.getSite().owner == myID) {
+			return null;
+		}
+		
+		if (currentEnemy == null) {
+			return friend.target;
+		}
+		else {
+			return currentEnemy.getSite().strength < friend.target.getSite().strength ? currentEnemy : friend.target;
+		}
+	}
+
+	private static Location getWeakestEnemy(Location currentEnemy, Location enemy) {
+		if (enemy == null || enemy.getSite().owner == 0 || enemy.getSite().owner == myID) {
+			return null;
+		}
+		
+		if (currentEnemy == null) {
+			return enemy;
+		}
+		else {
+			return currentEnemy.getSite().strength < enemy.getSite().strength ? currentEnemy : enemy;
+		}
 	}
 }

@@ -4,6 +4,8 @@ public class Location {
     public final int x, y;
     private final Site site;
     public Location target = null;
+    public Direction toEnemy = Direction.STILL;
+    public Direction toTerrain = Direction.STILL;
     
     public Location(int x, int y, Site site) {
         this.x = x;
@@ -21,53 +23,5 @@ public class Location {
 
     public Site getSite() {
         return site;
-    }
-    
-    public Direction getDirectionTo(Location l) {
-    	int dx = Math.abs(x - l.x);
-    	int dy = Math.abs(y - l.y);
-    	
-    	if (dx > dy) {
-    		//East or West
-    		if (x > l.x) {
-    			return Direction.WEST;
-    		}
-    		else {
-    			return Direction.EAST;
-    		}
-    	}
-    	else {
-    		//North or South
-    		if (y < l.y) {
-    			return Direction.SOUTH;
-    		}
-    		else {
-    			return Direction.NORTH;
-    		}
-    	}
-    }
-    
-    public Direction getDirectionFrom(Location l) {
-    	int dx = Math.abs(x - l.x);
-    	int dy = Math.abs(y - l.y);
-    	
-    	if (dx > dy) {
-    		//East or West
-    		if (x > l.x) {
-    			return Direction.EAST;
-    		}
-    		else {
-    			return Direction.WEST;
-    		}
-    	}
-    	else {
-    		//North or South
-    		if (y < l.y) {
-    			return Direction.NORTH;
-    		}
-    		else {
-    			return Direction.SOUTH;
-    		}
-    	}
     }
 }

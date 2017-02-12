@@ -56,13 +56,13 @@ public class GameMap{
             case STILL:
                 return location;
             case NORTH:
-                return locations[location.getX()][(location.getY() == 0 ? height : location.getY()) -1];
+                return locations[location.getX()][(location.getY() == 0 ? height - 1 : location.getY()) -1];
             case EAST:
                 return locations[location.getX() == width - 1 ? 0 : location.getX() + 1][location.getY()];
             case SOUTH:
                 return locations[location.getX()][location.getY() == height - 1 ? 0 : location.getY() + 1];
             case WEST:
-                return locations[(location.getX() == 0 ? width : location.getX()) - 1][location.getY()];
+                return locations[(location.getX() == 0 ? width - 1 : location.getX()) - 1][location.getY()];
             default:
                 throw new IllegalArgumentException(String.format("Unknown direction %s encountered", direction));
         }
@@ -79,7 +79,46 @@ public class GameMap{
     public Location getLocation(int x, int y) {
         return locations[x][y];
     }
+    
+    public Location getLocationWraparound(int x, int y) {
+    	if (x < 0) {
+    		x = width - 1;
+    	}
+    	else if (x >= width) {
+    		x = 0;
+    	}
+    	
+    	if (y < 0) {
+    		y = height - 1;
+    	}
+    	else if (y >= height) {
+    		y = 0;
+    	}
+    	
+    	return locations[x][y];
+    }
 
+    public Direction getDirectionFromAToB(Location a, Location b) {
+    	int dirNorth = a.y > b.y ? a.y - b.y : a.y + (height - b.y);
+    	int dirSouth = a.y < b.y ? b.y - a.y : b.y + (height - a.y);
+    	int dirEast = a.x < b.x ? b.x - a.x : b.x + (width - a.x);
+    	int dirWest = a.x > b.x ? a.x - b.x : a.x + (width - b.x);
+    	int shortest = Math.min(Math.min(dirNorth, dirSouth), Math.min(dirEast, dirWest));
+    	
+    	if (shortest == dirNorth) {
+    		return Direction.NORTH;
+    	}
+    	else if (shortest == dirSouth) {
+    		return Direction.SOUTH;
+    	}
+    	else if (shortest == dirEast) {
+    		return Direction.EAST;
+    	}
+    	else {
+    		return Direction.WEST;
+    	}
+    }
+    
     void reset() {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {

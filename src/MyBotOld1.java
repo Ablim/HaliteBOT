@@ -28,7 +28,7 @@ public class MyBotOld1 {
 	            			
 	            			if (neighbor.getSite().strength < me.getSite().strength) {
 	            				//KILL!
-	            				moves.add(new Move(me, me.getDirectionTo(neighbor)));
+	            				moves.add(new Move(me, gameMap.getDirectionFromAToB(me, neighbor)));
 	            			}
 	            			else {
 	            				//Wait
@@ -43,7 +43,7 @@ public class MyBotOld1 {
 	            				moves.add(new Move(me, Direction.STILL));
 	            			}
 	            			else {
-	            				moves.add(new Move(me, me.getDirectionTo(me.target))); 
+	            				moves.add(new Move(me, gameMap.getDirectionFromAToB(me, me.target))); 
 	            			}
 	            		}
 	            	}

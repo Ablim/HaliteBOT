@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class MyBotOld1 {
+public class MyBot1_0 {
     
 	public static void main(String[] args) throws java.io.IOException {
 
@@ -10,7 +10,7 @@ public class MyBotOld1 {
         final int myID = iPackage.myID;
         final GameMap gameMap = iPackage.map;
         
-        Networking.sendInit("AblimBOT Old 1");
+        Networking.sendInit("AblimBOT 1.0");
 
         while (true) {
         	Networking.updateFrame(gameMap);

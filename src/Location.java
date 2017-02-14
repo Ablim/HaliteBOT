@@ -2,10 +2,8 @@ public class Location {
 
     // Public for backward compability
     public final int x, y;
-    private final Site site;
+    public final Site site;
     public Location target = null;
-    public Direction toEnemy = Direction.STILL;
-    public Direction toTerrain = Direction.STILL;
     
     public Location(int x, int y, Site site) {
         this.x = x;

@@ -5,15 +5,15 @@ import java.util.List;
 public class MyBot {
     
 	private static int myID = 0;
+	private static int strengthLimit = 50;
 	
 	public static void main(String[] args) throws java.io.IOException {
 
         final InitPackage iPackage = Networking.getInit();
         myID = iPackage.myID;
         final GameMap gameMap = iPackage.map;
-        final int strengthLimit = 50;
         
-        Networking.sendInit("AblimBOT 1.1");
+        Networking.sendInit("AblimBot");
 
         while (true) {
         	Networking.updateFrame(gameMap);
@@ -23,33 +23,31 @@ public class MyBot {
             	for (int y = 0; y < gameMap.height; y++) {
             		Location me = gameMap.getLocation(x, y);
             	
-	            	if (me.getSite().owner != myID) {
+	            	if (me.site.owner != myID) {
 	            		continue;
 	            	}
 	            	
-	            	LinkedList<Location> neighbors = getNeighbors(me, gameMap);
-	            	Location target = null;
-	            	Location closestTarget = null;
+	            	LinkedList<Location> neighbors = gameMap.getNeighbors4(me);
+	            	Location weakestTarget = null;
+	            	Location friendWithClosestTarget = null;
 	            	
 	            	for (Location l : neighbors) {
-	            		if (l.getSite().owner == myID) {
-	            			closestTarget = getClosestTarget(me, gameMap, closestTarget, l.target);
+	            		if (l.site.owner == myID) {
+	            			friendWithClosestTarget = getFriendWithClosestTarget(friendWithClosestTarget, l);
 	            		}
 	            		else {
-	            			target = getMostImportantTarget(target, l);
+	            			weakestTarget = getWeakestTarget(weakestTarget, l);
 	            		}
 	            	}
 	            	
-	            	if (target != null) {
-	            		me.target = target;
-	            		Direction dirToTarget = gameMap.getDirectionFromAToB(me, target);
-            			Direction step = me.getSite().strength > target.getSite().strength ? dirToTarget : Direction.STILL;
-            			moves.add(new Move(me, step));
+	            	if (weakestTarget != null) {
+	            		me.stepsToTarget = 1;
+	            		Direction step = me.site.strength > weakestTarget.site.strength ? weakestTarget.direction : Direction.STILL;
+	            		moves.add(new Move(me, step));
 	            	}
-	            	else if (closestTarget != null) {
-	            		me.target = closestTarget;
-	            		Direction dirToTarget = gameMap.getDirectionFromAToB(me, closestTarget);
-	            		Direction step = me.getSite().strength >= strengthLimit ? dirToTarget : Direction.STILL;
+	            	else if (friendWithClosestTarget != null) {
+	            		me.stepsToTarget = friendWithClosestTarget.stepsToTarget + 1;
+	            		Direction step = me.site.strength >= strengthLimit ? friendWithClosestTarget.direction : Direction.STILL;
 	            		moves.add(new Move(me, step));
 	            	}
 	            	else {
@@ -62,49 +60,27 @@ public class MyBot {
         }
     }
 	
-	private static Location getClosestTarget(Location me, GameMap gameMap, Location currentTarget, Location newTarget) {
-		if (me == null || newTarget == null || newTarget.getSite().owner == myID) {
-			return currentTarget;
+	private static Location getFriendWithClosestTarget(Location currentFriend, Location newFriend) {
+		if (newFriend == null || newFriend.site.owner != myID) {
+			return currentFriend;
 		}
-		else if (currentTarget == null) {
-			return newTarget;
-		}
-		else if (gameMap.getDistance(me, currentTarget) < gameMap.getDistance(me, newTarget)) {
-			return currentTarget;
+		else if (currentFriend == null || currentFriend.site.owner != myID) {
+			return newFriend;
 		}
 		else {
-			return newTarget;
+			return currentFriend.stepsToTarget < newFriend.stepsToTarget ? currentFriend : newFriend;
 		}
 	}
 
-	private static LinkedList<Location> getNeighbors(Location me, GameMap gameMap) {
-		LinkedList<Location> neighbors = new LinkedList<Location>();
-		neighbors.add(gameMap.getLocationWraparound(me.x - 1, me.y - 1));
-		neighbors.add(gameMap.getLocationWraparound(me.x,     me.y - 1));
-		neighbors.add(gameMap.getLocationWraparound(me.x + 1, me.y - 1));
-		neighbors.add(gameMap.getLocationWraparound(me.x - 1, me.y));
-		neighbors.add(gameMap.getLocationWraparound(me.x + 1, me.y));
-		neighbors.add(gameMap.getLocationWraparound(me.x - 1, me.y + 1));
-		neighbors.add(gameMap.getLocationWraparound(me.x,     me.y + 1));
-		neighbors.add(gameMap.getLocationWraparound(me.x + 1, me.y + 1));
-		return neighbors;
-	}
-
-	private static Location getMostImportantTarget(Location currentTarget, Location newTarget) {
-		if (newTarget == null || newTarget.getSite().owner == myID) {
+	private static Location getWeakestTarget(Location currentTarget, Location newTarget) {
+		if (newTarget == null || newTarget.site.owner == myID) {
 			return currentTarget;
 		}
-		else if (currentTarget == null) {
+		else if (currentTarget == null || currentTarget.site.owner == myID) {
 			return newTarget;
-		}
-		else if ((currentTarget.getSite().owner == 0 && newTarget.getSite().owner == 0) || (currentTarget.getSite().owner != 0 && newTarget.getSite().owner != 0)) {
-			return currentTarget.getSite().strength < newTarget.getSite().strength ? currentTarget : newTarget;
-		}
-		else if (currentTarget.getSite().owner != 0) {
-			return currentTarget;
 		}
 		else {
-			return newTarget;
+			return currentTarget.site.strength < newTarget.site.strength ? currentTarget : newTarget;
 		}
 	}
 }

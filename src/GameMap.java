@@ -1,4 +1,4 @@
-import java.util.ArrayList;
+import java.util.LinkedList;
 public class GameMap{
 
     private final Site[][] contents;
@@ -52,17 +52,27 @@ public class GameMap{
     }
 
     public Location getLocation(Location location, Direction direction) {
+    	Location to = null;
+    	
         switch (direction) {
             case STILL:
                 return location;
             case NORTH:
-                return locations[location.getX()][(location.getY() == 0 ? height - 1 : location.getY()) -1];
+            	to = locations[location.getX()][(location.getY() == 0 ? height - 1 : location.getY()) -1];
+            	to.direction = Direction.NORTH;
+                return to;
             case EAST:
-                return locations[location.getX() == width - 1 ? 0 : location.getX() + 1][location.getY()];
+            	to = locations[location.getX() == width - 1 ? 0 : location.getX() + 1][location.getY()];
+            	to.direction = Direction.EAST;
+            	return to;
             case SOUTH:
-                return locations[location.getX()][location.getY() == height - 1 ? 0 : location.getY() + 1];
+                to = locations[location.getX()][location.getY() == height - 1 ? 0 : location.getY() + 1];
+                to.direction = Direction.SOUTH;
+                return to;
             case WEST:
-                return locations[(location.getX() == 0 ? width - 1 : location.getX()) - 1][location.getY()];
+                to = locations[(location.getX() == 0 ? width - 1 : location.getX()) - 1][location.getY()];
+                to.direction = Direction.WEST;
+                return to;
             default:
                 throw new IllegalArgumentException(String.format("Unknown direction %s encountered", direction));
         }
@@ -103,15 +113,18 @@ public class GameMap{
     	int dirSouth = a.y < b.y ? b.y - a.y : b.y + (height - a.y);
     	int dirEast = a.x < b.x ? b.x - a.x : b.x + (width - a.x);
     	int dirWest = a.x > b.x ? a.x - b.x : a.x + (width - b.x);
-    	int shortest = Math.min(Math.min(dirNorth, dirSouth), Math.min(dirEast, dirWest));
+    	//int shortest = Math.min(Math.min(dirNorth, dirSouth), Math.min(dirEast, dirWest));
+    	int shortestX = Math.min(dirEast, dirWest);
+    	int shortestY = Math.min(dirNorth, dirSouth);
+    	int longest = Math.min(shortestX, shortestY);
     	
-    	if (shortest == dirNorth) {
+    	if (longest == dirNorth) {
     		return Direction.NORTH;
     	}
-    	else if (shortest == dirSouth) {
+    	else if (longest == dirSouth) {
     		return Direction.SOUTH;
     	}
-    	else if (shortest == dirEast) {
+    	else if (longest == dirEast) {
     		return Direction.EAST;
     	}
     	else {
@@ -128,4 +141,26 @@ public class GameMap{
             }
         }
     }
+    
+    public LinkedList<Location> getNeighbors8(Location me) {
+		LinkedList<Location> neighbors = new LinkedList<Location>();
+		neighbors.add(getLocationWraparound(me.x - 1, me.y - 1));
+		neighbors.add(getLocationWraparound(me.x,     me.y - 1));
+		neighbors.add(getLocationWraparound(me.x + 1, me.y - 1));
+		neighbors.add(getLocationWraparound(me.x - 1, me.y));
+		neighbors.add(getLocationWraparound(me.x + 1, me.y));
+		neighbors.add(getLocationWraparound(me.x - 1, me.y + 1));
+		neighbors.add(getLocationWraparound(me.x,     me.y + 1));
+		neighbors.add(getLocationWraparound(me.x + 1, me.y + 1));
+		return neighbors;
+	}
+    
+    public LinkedList<Location> getNeighbors4(Location me) {
+		LinkedList<Location> neighbors = new LinkedList<Location>();
+		neighbors.add(getLocation(me, Direction.NORTH));
+		neighbors.add(getLocation(me, Direction.SOUTH));
+		neighbors.add(getLocation(me, Direction.EAST));
+		neighbors.add(getLocation(me, Direction.WEST));
+		return neighbors;
+	}
 }

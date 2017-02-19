@@ -4,6 +4,8 @@ public class Location {
     public final int x, y;
     public final Site site;
     public Location target = null;
+    public Direction direction = Direction.STILL;
+    public int stepsToTarget = Integer.MAX_VALUE;
     
     public Location(int x, int y, Site site) {
         this.x = x;

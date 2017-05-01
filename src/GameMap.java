@@ -113,18 +113,15 @@ public class GameMap{
     	int dirSouth = a.y < b.y ? b.y - a.y : b.y + (height - a.y);
     	int dirEast = a.x < b.x ? b.x - a.x : b.x + (width - a.x);
     	int dirWest = a.x > b.x ? a.x - b.x : a.x + (width - b.x);
-    	//int shortest = Math.min(Math.min(dirNorth, dirSouth), Math.min(dirEast, dirWest));
-    	int shortestX = Math.min(dirEast, dirWest);
-    	int shortestY = Math.min(dirNorth, dirSouth);
-    	int longest = Math.min(shortestX, shortestY);
+    	int shortest = Math.min(Math.min(dirNorth, dirSouth), Math.min(dirEast, dirWest));
     	
-    	if (longest == dirNorth) {
+    	if (shortest == dirNorth) {
     		return Direction.NORTH;
     	}
-    	else if (longest == dirSouth) {
+    	else if (shortest == dirSouth) {
     		return Direction.SOUTH;
     	}
-    	else if (longest == dirEast) {
+    	else if (shortest == dirEast) {
     		return Direction.EAST;
     	}
     	else {
